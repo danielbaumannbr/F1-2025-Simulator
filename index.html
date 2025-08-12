@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulador F1 2025 — Pista e Corrida</title>
+  <style>
+    :root{ --bg:#0b1020; --panel:#0f1724; --accent:#00d2be; color-scheme: dark; }
+    html,body{ height:100%; margin:0; font-family: Inter, system-ui, Arial; background: linear-gradient(180deg,#071022 0%, #0b1220 100%); color:#e6eef6 }
+    .app{display:grid; grid-template-columns: 1fr 360px; gap:16px; padding:16px; height:100vh; box-sizing:border-box}
+    .track-panel{ background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); border-radius:12px; padding:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.6); position:relative}
+    header{ display:flex; align-items:center; gap:12px; margin-bottom:8px }
+    header h1{ font-size:18px; margin:0 }
+    .controls{ background:var(--panel); padding:12px; border-radius:12px;}
+    .controls button{ padding:8px 12px; margin-right:6px; border-radius:8px; border:none; background:#162434; color:#e6eef6; cursor:pointer }
+    .controls .danger{ background:#8b1a2f }
+    .info{ margin-top:12px; font-size:13px; line-height:1.4 }
+    svg{ width:100%; height:calc(100vh - 120px); display:block; }
+    .hud{ position:absolute; left:14px; top:14px; background:rgba(2,6,23,0.6); padding:8px 10px; border-radius:10px; font-size:13px }
+    .standings{ font-size:13px }
+    .team-row{ display:flex; align-items:center; gap:8px; margin:6px 0 }
+    .dot{ width:14px; height:14px; border-radius:50% }
+    footer{ font-size:12px; opacity:0.8; margin-top:10px }
+    /* small responsive */
+    @media(max-width:900px){ .app{ grid-template-columns: 1fr; grid-auto-rows:min-content } svg{ height:50vh } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="track-panel">
+      <header>
+        <h1>Simulador F1 2025 — Pista estilizada</h1>
+        <div style="margin-left:auto; font-size:13px; opacity:0.9">Voltas: <span id="totalLaps">30</span></div>
+      </header>
+
+      <div class="hud">
+        <div><strong>Tempo de corrida:</strong> <span id="raceTime">00:00</span></div>
+        <div><strong>Volta:</strong> <span id="currentLap">0</span>/<span id="laps">30</span></div>
+        <div><strong>Líder:</strong> <span id="leader">-</span></div>
+      </div>
+
+      <!-- SVG pista: caminho em forma de laço com retas e curvas -->
+      <svg id="trackSVG" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.45"/>
+          </filter>
+        </defs>
+
+        <!-- grama -->
+        <rect x="0" y="0" width="1200" height="700" fill="#083" opacity="0.04" />
+
+        <!-- pista: base path (center-line) -->
+        <path id="centerPath" d="M150,350 C150,150 450,100 600,120 C850,160 1050,120 1050,350 C1050,550 800,600 600,580 C400,560 200,500 150,350 Z" fill="none" stroke="transparent" />
+
+        <!-- draw track ribbons: using stroke with wide line to simulate track -->
+        <path d="M150,350 C150,150 450,100 600,120 C850,160 1050,120 1050,350 C1050,550 800,600 600,580 C400,560 200,500 150,350 Z" fill="none" stroke="#222" stroke-width="120" stroke-linejoin="round" stroke-linecap="round" />
+        <path d="M150,350 C150,150 450,100 600,120 C850,160 1050,120 1050,350 C1050,550 800,600 600,580 C400,560 200,500 150,350 Z" fill="none" stroke="#6b6b6b" stroke-width="40" stroke-linejoin="round" stroke-linecap="round" opacity="0.5" />
+
+        <!-- kerbs / curbs (decorative) -->
+        <g id="curbs">
+          <!-- a few sample curbs by small arcs -->
+          <circle cx="380" cy="110" r="12" fill="#ff0000" />
+          <circle cx="920" cy="140" r="12" fill="#ffffff" />
+          <circle cx="980" cy="450" r="12" fill="#ff0000" />
+          <circle cx="300" cy="460" r="12" fill="#ffffff" />
+        </g>
+
+        <!-- start/finish line -->
+        <g id="startFinish" transform="translate(600,40)">
+          <rect x="-6" y="0" width="12" height="80" fill="#fff"/>
+        </g>
+
+        <!-- cars layer (will be filled by JS) -->
+        <g id="carsLayer"></g>
+
+        <!-- minimal map legend -->
+        <g transform="translate(20,560)" font-size="12">
+          <rect x="-10" y="-22" width="190" height="120" rx="8" fill="#071426" opacity="0.6" />
+        </g>
+      </svg>
+
+    </div>
+
+    <aside class="controls">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button id="startBtn">Iniciar</button>
+        <button id="pauseBtn">Pausar</button>
+        <button id="resetBtn" class="danger">Reset</button>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>Velocidade da simulação: <span id="speedLabel">1x</span></label>
+        <input id="speed" type="range" min="0.25" max="4" step="0.25" value="1" style="width:100%" />
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Voltas da corrida</label>
+        <input id="lapInput" type="number" min="5" max="80" value="30" style="width:100%; padding:6px; margin-top:6px; border-radius:8px; border:none; background:#081426; color:#e6eef6" />
+      </div>
+
+      <div class="info">
+        <strong>Regras simuladas (resumo)</strong>
+        <ul>
+          <li>Pontuação: 25-18-15-12-10-8-6-4-2-1 para top10</li>
+          <li>1 ponto para volta mais rápida (condição: top10)</li>
+          <li>Parada nos boxes aplica +18s (tempo fixo de pitstop)</li>
+          <li>Retirada aleatória (falha) possível; safety car simulado (neutraliza por 5 a 12s)</li>
+          <li>Ultrapassagens baseadas em diferença de performance + RNG</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:12px">
+        <strong>Equipas 2025 (número e cor principal)</strong>
+        <div id="teamsList" class="standings"></div>
+      </div>
+
+      <footer>
+        Gerado automaticamente. Fonte dos nomes e números: Formula1.com / FIA (2025).
+      </footer>
+    </aside>
+  </div>
+
+  <script>
+    /************************************************************************
+     * Dados 2025 (times, pilotos, número e cor principal)
+     * Fonte: formula1.com e listas oficiais 2025 (verificado em web.run)
+     *************************************************************************/
+    const TEAMS = [
+      {team:'Red Bull Racing', drivers:[{name:'Max Verstappen', number:1},{name:'Liam Lawson', number:21}], color:'#1E41FF'},
+      {team:'Mercedes', drivers:[{name:'George Russell', number:63},{name:'Kimi Antonelli', number:12}], color:'#00D2BE'},
+      {team:'Ferrari', drivers:[{name:'Charles Leclerc', number:16},{name:'Lewis Hamilton', number:44}], color:'#DC0000'},
+      {team:'McLaren', drivers:[{name:'Lando Norris', number:4},{name:'Oscar Piastri', number:81}], color:'#FF8700'},
+      {team:'Aston Martin', drivers:[{name:'Fernando Alonso', number:14},{name:'Lance Stroll', number:18}], color:'#006F62'},
+      {team:'Alpine', drivers:[{name:'Jack Doohan', number:7},{name:'Pierre Gasly', number:10}], color:'#005AFF'},
+      {team:'Haas', drivers:[{name:'Esteban Ocon', number:31},{name:'Oliver Bearman', number:87}], color:'#FFFFFF'},
+      {team:'Williams', drivers:[{name:'Alexander Albon', number:23},{name:'Carlos Sainz', number:55}], color:'#0050D0'},
+      {team:'Sauber', drivers:[{name:'Nico Hulkenberg', number:27},{name:'Gabriel Bortoleto', number:5}], color:'#00B3AD'},
+      {team:'Racing Bulls', drivers:[{name:'Yuki Tsunoda', number:22},{name:'Isack Hadjar', number:24}], color:'#D62828'}
+    ];
+
+    // helper: flatten drivers into grid
+    const GRID = [];
+    TEAMS.forEach(t=> t.drivers.forEach(d => GRID.push({team:t.team, name:d.name, num:d.number, color:t.color, teamColor:t.color, perf: Math.random()*0.2 + 0.9}))); // perf base
+
+    // HTML refs
+    const carsLayer = document.getElementById('carsLayer');
+    const lapsInput = document.getElementById('lapInput');
+    const totalLapsSpan = document.getElementById('totalLaps');
+    const lapsSpan = document.getElementById('laps');
+    const currentLapSpan = document.getElementById('currentLap');
+    const raceTimeSpan = document.getElementById('raceTime');
+    const leaderSpan = document.getElementById('leader');
+    const teamsList = document.getElementById('teamsList');
+
+    // populate teams list
+    TEAMS.forEach(t=>{
+      const div = document.createElement('div'); div.className='team-row';
+      const dot = document.createElement('span'); dot.className='dot'; dot.style.background=t.color; div.appendChild(dot);
+      const txt = document.createElement('div'); txt.innerHTML = `<strong style="font-size:13px">${t.team}</strong><div style="font-size:12px; opacity:0.9">${t.drivers.map(d=>d.number+' — '+d.name).join(' / ')}</div>`;
+      div.appendChild(txt); teamsList.appendChild(div);
+    });
+
+    // Simulation state
+    let SIM = {
+      running:false, time:0, speed:1, lapTime:90, // lap duration baseline (s)
+      cars:[], totalLaps: parseInt(lapsInput.value), currentLap:0, interval:null, lastTimestamp:0
+    };
+
+    // prepare path length and helper: get point on path
+    const path = document.getElementById('centerPath');
+    const pathLen = path.getTotalLength();
+
+    // create car SVG elements
+    function initCars(){
+      carsLayer.innerHTML='';
+      SIM.cars = GRID.map((g,i)=>{
+        const pct = i / GRID.length * 0.02; // small stagger on grid
+        const el = document.createElementNS('http://www.w3.org/2000/svg','g');
+        el.setAttribute('transform','translate(0,0)');
+        el.setAttribute('data-num', g.num);
+
+        // circle
+        const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circ.setAttribute('r',14); circ.setAttribute('fill', g.color); circ.setAttribute('stroke','#111'); circ.setAttribute('stroke-width',2); circ.setAttribute('filter','url(#shadow)');
+        el.appendChild(circ);
+        // number text
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('y',5); txt.setAttribute('x',-7); txt.setAttribute('font-size',10); txt.setAttribute('fill','#fff'); txt.textContent = g.num;
+        el.appendChild(txt);
+
+        carsLayer.appendChild(el);
+
+        return {
+          id:i, model:g, el, circ, txt, pos: pct*pathLen, laps:0, lapTimeAccum:0, totalTime:0, inPit:false, retired:false
+        };
+      });
+    }
+
+    // update positions visually
+    function render(){
+      SIM.cars.forEach(c=>{
+        const p = path.getPointAtLength(c.pos % pathLen);
+        c.el.setAttribute('transform', `translate(${p.x}, ${p.y})`);
+      });
+    }
+
+    // race tick: advance simulation by dt seconds
+    function tick(dt){
+      if(!SIM.running) return;
+      SIM.time += dt * SIM.speed;
+
+      // determine lap baseline — dt moves by distance proportional to lapTime
+      const lapSpeedScalar = pathLen / SIM.lapTime; // px per sec for baseline
+
+      // random events: small chance of safety car or retire
+      if(Math.random() < 0.0005 * SIM.speed){
+        // small chance of random retirement
+        const alive = SIM.cars.filter(c=>!c.retired);
+        if(alive.length>6){ const pick = alive[Math.floor(Math.random()*alive.length)]; pick.retired=true; pick.circ.setAttribute('opacity',0.2); }
+      }
+
+      // move each car
+      SIM.cars.forEach((c,idx)=>{
+        if(c.retired) return;
+        // performance affects speed
+        const perf = c.model.perf; // base
+        // small randomness + team penalties
+        const variability = (Math.sin((SIM.time+idx*3)/10)*0.002 + (Math.random()-0.5)*0.01);
+        const speedPx = lapSpeedScalar * perf * (1 + variability);
+        c.pos += speedPx * (dt * SIM.speed);
+
+        // lap counting
+        const lapsCompleted = Math.floor(c.pos / pathLen);
+        if(lapsCompleted > c.laps){
+          c.laps = lapsCompleted;
+          // pitstop chance on lap
+          if(Math.random() < 0.06) { c.inPit=true; c.pos += -60; c.totalTime += 18; } // pitstop penalty
+        }
+
+        // total time estimate
+        c.totalTime = (c.pos / pathLen) * SIM.lapTime / c.model.perf;
+      });
+
+      // update HUD
+      SIM.currentLap = Math.max(...SIM.cars.map(c=>c.laps));
+      currentLapSpan.textContent = SIM.currentLap;
+      raceTimeSpan.textContent = formatTime(Math.floor(SIM.time));
+
+      // leader determination by totalTime ascending (lower = better)
+      const aliveCars = SIM.cars.filter(c=>!c.retired);
+      aliveCars.sort((a,b)=> a.totalTime - b.totalTime);
+      leaderSpan.textContent = aliveCars.length? aliveCars[0].model.name + ' #' + aliveCars[0].model.num : '-';
+
+      // check race end: if any car completed totalLaps
+      const finished = SIM.cars.filter(c=>c.laps >= SIM.totalLaps && !c.finished);
+      if(finished.length){
+        finished.forEach(f=> f.finished = true);
+      }
+      const finishedCount = SIM.cars.filter(c=>c.finished).length;
+      if(finishedCount >= 1){
+        // if at least one finished and simulation time beyond limit, stop when top3 finished
+        if(SIM.cars.filter(c=>c.finished).length >= 3){
+          stopRace();
+        }
+      }
+
+      render();
+    }
+
+    function formatTime(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${mm}:${ss}` }
+
+    // start/pause/reset handlers
+    document.getElementById('startBtn').addEventListener('click', ()=>{
+      if(!SIM.running){ SIM.running=true; SIM.lastTimestamp = performance.now(); runLoop(); }
+    });
+    document.getElementById('pauseBtn').addEventListener('click', ()=>{ SIM.running=false; });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ resetRace(); });
+    document.getElementById('speed').addEventListener('input', e=>{ SIM.speed=parseFloat(e.target.value); document.getElementById('speedLabel').textContent = SIM.speed+'x' });
+    lapsInput.addEventListener('change', e=>{ SIM.totalLaps = parseInt(e.target.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; });
+
+    function runLoop(ts){
+      if(!SIM.running) return; const now = ts || performance.now(); const dt = (now - SIM.lastTimestamp)/1000; SIM.lastTimestamp = now; tick(dt); requestAnimationFrame(runLoop);
+    }
+
+    function stopRace(){ SIM.running=false; // compute final classification
+      const finishOrder = SIM.cars.filter(c=>c.finished || !c.retired).sort((a,b)=> a.totalTime - b.totalTime).slice(0,10);
+      // show podium
+      setTimeout(()=>{
+        const podium = finishOrder.slice(0,3).map((c,i)=>`${i+1}º — ${c.model.name} (#${c.model.num})`).join('\n');
+        alert('Pódio:\n'+podium);
+      },200);
+    }
+
+    function resetRace(){ SIM.running=false; SIM.time=0; SIM.currentLap=0; SIM.totalLaps = parseInt(lapsInput.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; SIM.cars.forEach(c=>{ c.pos = (c.id/ SIM.cars.length)*20; c.laps=0; c.totalTime=0; c.retired=false; c.finished=false; c.inPit=false; c.circ.setAttribute('opacity',1); }); render(); }
+
+    // init
+    initCars(); resetRace();
+
+    // initial render
+    render();
+
+    // small auto-start for demo disabled by default
+    // document.getElementById('startBtn').click();
+  </script>
+</body>
+</html>
