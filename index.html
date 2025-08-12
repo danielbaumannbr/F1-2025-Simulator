@@ -23,6 +23,50 @@
     footer{ font-size:12px; opacity:0.8; margin-top:10px }
     /* small responsive */
     @media(max-width:900px){ .app{ grid-template-columns: 1fr; grid-auto-rows:min-content } svg{ height:50vh } }
+    
+    /* New standings panel */
+    .standings-panel {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      background: rgba(2,6,23,0.6);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      max-height: 40%;
+      overflow-y: auto;
+      width: 200px;
+    }
+    .standings-panel h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      text-align: center;
+    }
+    .driver-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+      padding: 4px 6px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+    }
+    .driver-row.retired {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+    .driver-name {
+      font-weight: bold;
+    }
+    .driver-gap {
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .driver-pos {
+      display: inline-block;
+      width: 20px;
+      text-align: right;
+      margin-right: 6px;
+    }
   </style>
 </head>
 <body>
@@ -79,6 +123,12 @@
           <rect x="-10" y="-22" width="190" height="120" rx="8" fill="#071426" opacity="0.6" />
         </g>
       </svg>
+
+      <!-- New standings panel -->
+      <div class="standings-panel">
+        <h3>Classificação</h3>
+        <div id="standingsList"></div>
+      </div>
 
     </div>
 
@@ -139,9 +189,45 @@
       {team:'Racing Bulls', drivers:[{name:'Yuki Tsunoda', number:22},{name:'Isack Hadjar', number:24}], color:'#D62828'}
     ];
 
+    // Function to get FIA-style 3-letter driver abbreviation
+    function getDriverAbbreviation(name) {
+      const parts = name.split(' ');
+      if (parts.length === 1) return parts[0].substring(0, 3).toUpperCase();
+      
+      // Special cases for known drivers
+      const specialCases = {
+        'Max Verstappen': 'VER',
+        'Lewis Hamilton': 'HAM',
+        'George Russell': 'RUS',
+        'Charles Leclerc': 'LEC',
+        'Lando Norris': 'NOR',
+        'Carlos Sainz': 'SAI',
+        'Fernando Alonso': 'ALO',
+        'Lance Stroll': 'STR',
+        'Pierre Gasly': 'GAS',
+        'Esteban Ocon': 'OCO',
+        'Yuki Tsunoda': 'TSU',
+        'Nico Hulkenberg': 'HUL',
+        'Alexander Albon': 'ALB'
+      };
+      
+      if (specialCases[name]) return specialCases[name];
+      
+      // Default pattern: first 3 letters of last name
+      return parts[parts.length - 1].substring(0, 3).toUpperCase();
+    }
+
     // helper: flatten drivers into grid
     const GRID = [];
-    TEAMS.forEach(t=> t.drivers.forEach(d => GRID.push({team:t.team, name:d.name, num:d.number, color:t.color, teamColor:t.color, perf: Math.random()*0.2 + 0.9}))); // perf base
+    TEAMS.forEach(t=> t.drivers.forEach(d => GRID.push({
+      team:t.team, 
+      name:d.name, 
+      num:d.number, 
+      color:t.color, 
+      teamColor:t.color, 
+      perf: Math.random()*0.2 + 0.9,
+      abbreviation: getDriverAbbreviation(d.name)
+    }))); // perf base
 
     // HTML refs
     const carsLayer = document.getElementById('carsLayer');
@@ -152,6 +238,7 @@
     const raceTimeSpan = document.getElementById('raceTime');
     const leaderSpan = document.getElementById('leader');
     const teamsList = document.getElementById('teamsList');
+    const standingsList = document.getElementById('standingsList');
 
     // populate teams list
     TEAMS.forEach(t=>{
@@ -170,6 +257,68 @@
     // prepare path length and helper: get point on path
     const path = document.getElementById('centerPath');
     const pathLen = path.getTotalLength();
+
+    // Function to update standings panel
+    function updateStandings() {
+      const aliveCars = SIM.cars.filter(c => !c.retired).sort((a, b) => a.totalTime - b.totalTime);
+      standingsList.innerHTML = '';
+      
+      aliveCars.forEach((car, index) => {
+        const row = document.createElement('div');
+        row.className = `driver-row ${car.retired ? 'retired' : ''}`;
+        
+        const gap = index === 0 ? 'LDR' : 
+                   car.laps < aliveCars[0].laps ? `${aliveCars[0].laps - car.laps}L` : 
+                   `+${formatGap(car.totalTime - aliveCars[0].totalTime)}`;
+        
+        row.innerHTML = `
+          <div class="driver-name">
+            <span class="driver-pos">${index + 1}</span>
+            ${car.model.abbreviation}
+          </div>
+          <div class="driver-gap">${gap}</div>
+        `;
+        
+        // Set color indicator
+        row.style.borderLeft = `3px solid ${car.model.color}`;
+        
+        standingsList.appendChild(row);
+      });
+      
+      // Add retired cars at the bottom
+      const retiredCars = SIM.cars.filter(c => c.retired);
+      if (retiredCars.length > 0) {
+        const retiredHeader = document.createElement('div');
+        retiredHeader.textContent = 'Retirados:';
+        retiredHeader.style.marginTop = '8px';
+        retiredHeader.style.opacity = '0.7';
+        standingsList.appendChild(retiredHeader);
+        
+        retiredCars.forEach((car, index) => {
+          const row = document.createElement('div');
+          row.className = 'driver-row retired';
+          row.innerHTML = `
+            <div class="driver-name">
+              <span class="driver-pos">${aliveCars.length + index + 1}</span>
+              ${car.model.abbreviation}
+            </div>
+            <div class="driver-gap">DNF</div>
+          `;
+          row.style.borderLeft = `3px solid ${car.model.color}`;
+          standingsList.appendChild(row);
+        });
+      }
+    }
+
+    // Format gap time for display
+    function formatGap(seconds) {
+      if (seconds < 1) return seconds.toFixed(3);
+      if (seconds < 60) return seconds.toFixed(1);
+      
+      const mins = Math.floor(seconds / 60);
+      const secs = (seconds % 60).toFixed(1);
+      return `${mins}:${secs.padStart(4, '0')}`;
+    }
 
     // create car SVG elements
     function initCars(){
@@ -203,6 +352,9 @@
         const p = path.getPointAtLength(c.pos % pathLen);
         c.el.setAttribute('transform', `translate(${p.x}, ${p.y})`);
       });
+      
+      // Update standings panel
+      updateStandings();
     }
 
     // race tick: advance simulation by dt seconds
