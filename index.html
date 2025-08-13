@@ -442,7 +442,7 @@
       }
 
       // random events: small chance of safety car or retire
-      if(Math.random() < 0.0005 * SIM.speed){
+      if(Math.random() < 0.0001 * SIM.speed){
         // small chance of random retirement
         const alive = SIM.cars.filter(c=>!c.retired);
         if(alive.length>6){ 
