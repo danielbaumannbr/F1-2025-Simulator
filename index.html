@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simulador F1 2025 — Pista e Corrida</title>
+  <title>Simulador F1 2025 — GP da Grã-Bretanha</title>
   <style>
     :root{ --bg:#0b1020; --panel:#0f1724; --accent:#00d2be; color-scheme: dark; }
     html,body{ height:100%; margin:0; font-family: Inter, system-ui, Arial; background: linear-gradient(180deg,#071022 0%, #0b1220 100%); color:#e6eef6 }
@@ -74,13 +73,13 @@
   <div class="app">
     <div class="track-panel">
       <header>
-        <h1>Simulador F1 2025 — Pista estilizada</h1>
-        <div style="margin-left:auto; font-size:13px; opacity:0.9">Voltas: <span id="totalLaps">30</span></div>
+        <h1>Simulador F1 2025 — GP da Grã-Bretanha</h1>
+        <div style="margin-left:auto; font-size:13px; opacity:0.9">Voltas: <span id="totalLaps">52</span></div>
       </header>
 
       <div class="hud">
         <div><strong>Tempo de corrida:</strong> <span id="raceTime">00:00</span></div>
-        <div><strong>Volta:</strong> <span id="currentLap">0</span>/<span id="laps">30</span></div>
+        <div><strong>Volta:</strong> <span id="currentLap">0</span>/<span id="laps">52</span></div>
         <div><strong>Líder:</strong> <span id="leader">-</span></div>
       </div>
 
@@ -147,7 +146,7 @@
 
       <div style="margin-top:12px">
         <label>Voltas da corrida</label>
-        <input id="lapInput" type="number" min="5" max="80" value="30" style="width:100%; padding:6px; margin-top:6px; border-radius:8px; border:none; background:#081426; color:#e6eef6" />
+        <input id="lapInput" type="number" min="5" max="80" value="52" style="width:100%; padding:6px; margin-top:6px; border-radius:8px; border:none; background:#081426; color:#e6eef6" />
       </div>
 
       <div class="info">
@@ -167,7 +166,7 @@
       </div>
 
       <footer>
-        Gerado automaticamente. Fonte dos nomes e números: Formula1.com / FIA (2025).
+        Simulação baseada no GP da Grã-Bretanha 2025 em Silverstone. Dados fictícios inspirados na temporada 2025.
       </footer>
     </aside>
   </div>
@@ -175,20 +174,51 @@
   <script>
     /************************************************************************
      * Dados 2025 (times, pilotos, número e cor principal)
-     * Fonte: formula1.com e listas oficiais 2025 (verificado em web.run)
+     * Grid baseado no GP da Grã-Bretanha 2025 em Silverstone
      *************************************************************************/
     const TEAMS = [
       {team:'Red Bull Racing', drivers:[{name:'Max Verstappen', number:1},{name:'Yuki Tsunoda', number:22}], color:'#1E41FF'},
+      {team:'McLaren', drivers:[{name:'Oscar Piastri', number:81},{name:'Lando Norris', number:4}], color:'#FF8700'},
       {team:'Mercedes', drivers:[{name:'George Russell', number:63},{name:'Kimi Antonelli', number:12}], color:'#00D2BE'},
-      {team:'Ferrari', drivers:[{name:'Charles Leclerc', number:16},{name:'Lewis Hamilton', number:44}], color:'#DC0000'},
-      {team:'McLaren', drivers:[{name:'Lando Norris', number:4},{name:'Oscar Piastri', number:81}], color:'#FF8700'},
+      {team:'Ferrari', drivers:[{name:'Lewis Hamilton', number:44},{name:'Charles Leclerc', number:16}], color:'#DC0000'},
       {team:'Aston Martin', drivers:[{name:'Fernando Alonso', number:14},{name:'Lance Stroll', number:18}], color:'#006F62'},
-      {team:'Alpine', drivers:[{name:'Jack Doohan', number:7},{name:'Pierre Gasly', number:10}], color:'#005AFF'},
+      {team:'Alpine', drivers:[{name:'Pierre Gasly', number:10},{name:'Franco Colapinto', number:43}], color:'#005AFF'},
+      {team:'Williams', drivers:[{name:'Carlos Sainz', number:55},{name:'Alexander Albon', number:23}], color:'#0050D0'},
       {team:'Haas', drivers:[{name:'Esteban Ocon', number:31},{name:'Oliver Bearman', number:87}], color:'#FFFFFF'},
-      {team:'Williams', drivers:[{name:'Alexander Albon', number:23},{name:'Carlos Sainz', number:55}], color:'#0050D0'},
-      {team:'Sauber', drivers:[{name:'Nico Hulkenberg', number:27},{name:'Gabriel Bortoleto', number:5}], color:'#00B3AD'},
-      {team:'Racing Bulls', drivers:[{name:'Liam Lawson', number:21},{name:'Isack Hadjar', number:24}], color:'#D62828'}
+      {team:'Sauber', drivers:[{name:'Gabriel Bortoleto', number:5},{name:'Nico Hulkenberg', number:27}], color:'#00B3AD'},
+      {team:'Racing Bulls', drivers:[{name:'Isack Hadjar', number:6},{name:'Liam Lawson', number:30}], color:'#D62828'}
     ];
+
+    // Grid de largada de Silverstone 2025 com tempos de qualificação (em segundos)
+    const STARTING_GRID = [
+      {name:'Max Verstappen', time:84.892},
+      {name:'Oscar Piastri', time:84.995},
+      {name:'Lando Norris', time:85.010},
+      {name:'George Russell', time:85.029},
+      {name:'Lewis Hamilton', time:85.095},
+      {name:'Charles Leclerc', time:85.121},
+      {name:'Fernando Alonso', time:85.621},
+      {name:'Pierre Gasly', time:85.785},
+      {name:'Carlos Sainz', time:85.746},
+      {name:'Kimi Antonelli', time:85.374},
+      {name:'Yuki Tsunoda', time:85.826},
+      {name:'Isack Hadjar', time:85.864},
+      {name:'Alexander Albon', time:85.889},
+      {name:'Esteban Ocon', time:85.950},
+      {name:'Liam Lawson', time:86.440},
+      {name:'Gabriel Bortoleto', time:86.446},
+      {name:'Lance Stroll', time:86.504},
+      {name:'Oliver Bearman', time:85.471},
+      {name:'Nico Hulkenberg', time:86.574},
+      {name:'Franco Colapinto', time:87.060}
+    ];
+
+    // Calcular desempenho baseado nos tempos de qualificação
+    const fastestTime = Math.min(...STARTING_GRID.map(d => d.time));
+    const performanceScale = {};
+    STARTING_GRID.forEach(driver => {
+      performanceScale[driver.name] = fastestTime / driver.time;
+    });
 
     // Function to get FIA-style 3-letter driver abbreviation
     function getDriverAbbreviation(name) {
@@ -209,7 +239,14 @@
         'Esteban Ocon': 'OCO',
         'Yuki Tsunoda': 'TSU',
         'Nico Hulkenberg': 'HUL',
-        'Alexander Albon': 'ALB'
+        'Alexander Albon': 'ALB',
+        'Oscar Piastri': 'PIA',
+        'Kimi Antonelli': 'ANT',
+        'Gabriel Bortoleto': 'BOR',
+        'Franco Colapinto': 'COL',
+        'Oliver Bearman': 'BEA',
+        'Isack Hadjar': 'HAD',
+        'Liam Lawson': 'LAW'
       };
       
       if (specialCases[name]) return specialCases[name];
@@ -218,17 +255,20 @@
       return parts[parts.length - 1].substring(0, 3).toUpperCase();
     }
 
-    // helper: flatten drivers into grid
+    // helper: flatten drivers into grid with performance based on qualifying
     const GRID = [];
-    TEAMS.forEach(t=> t.drivers.forEach(d => GRID.push({
-      team:t.team, 
-      name:d.name, 
-      num:d.number, 
-      color:t.color, 
-      teamColor:t.color, 
-      perf: Math.random()*0.2 + 0.9,
-      abbreviation: getDriverAbbreviation(d.name)
-    }))); // perf base
+    TEAMS.forEach(t=> t.drivers.forEach(d => {
+      const perf = performanceScale[d.name] || 0.95; // default if not found
+      GRID.push({
+        team:t.team, 
+        name:d.name, 
+        num:d.number, 
+        color:t.color, 
+        teamColor:t.color, 
+        perf: perf * (0.98 + Math.random()*0.04), // add small randomness
+        abbreviation: getDriverAbbreviation(d.name)
+      });
+    }));
 
     // HTML refs
     const carsLayer = document.getElementById('carsLayer');
@@ -251,8 +291,17 @@
 
     // Simulation state
     let SIM = {
-      running:false, time:0, speed:1, lapTime:90, // lap duration baseline (s)
-      cars:[], totalLaps: parseInt(lapsInput.value), currentLap:0, interval:null, lastTimestamp:0
+      running:false, 
+      time:0, 
+      speed:1, 
+      lapTime:90, // lap duration baseline (s)
+      cars:[], 
+      totalLaps: parseInt(lapsInput.value), 
+      currentLap:0, 
+      interval:null, 
+      lastTimestamp:0,
+      safetyCar: false,
+      safetyCarEndTime: 0
     };
 
     // prepare path length and helper: get point on path
@@ -325,7 +374,10 @@
     function initCars(){
       carsLayer.innerHTML='';
       SIM.cars = GRID.map((g,i)=>{
-        const pct = i / GRID.length * 0.02; // small stagger on grid
+        // Find starting position based on qualifying
+        const gridPos = STARTING_GRID.findIndex(d => d.name === g.name);
+        const pct = (gridPos >= 0 ? gridPos : i) / GRID.length * 0.02; // small stagger on grid
+        
         const el = document.createElementNS('http://www.w3.org/2000/svg','g');
         el.setAttribute('transform','translate(0,0)');
         el.setAttribute('data-num', g.num);
@@ -342,7 +394,19 @@
         carsLayer.appendChild(el);
 
         return {
-          id:i, model:g, el, circ, txt, pos: pct*pathLen, laps:0, lapTimeAccum:0, totalTime:0, inPit:false, retired:false
+          id:i, 
+          model:g, 
+          el, 
+          circ, 
+          txt, 
+          pos: pct*pathLen, 
+          laps:0, 
+          lapTimeAccum:0, 
+          totalTime:0, 
+          inPit:false, 
+          retired:false,
+          pitCount: 0,
+          finished: false
         };
       });
     }
@@ -366,18 +430,40 @@
       // determine lap baseline — dt moves by distance proportional to lapTime
       const lapSpeedScalar = pathLen / SIM.lapTime; // px per sec for baseline
 
+      // Safety car logic
+      if (SIM.safetyCar) {
+        if (SIM.time > SIM.safetyCarEndTime) {
+          SIM.safetyCar = false;
+        }
+      } else if (Math.random() < 0.0003 * SIM.speed) {
+        // Random safety car chance
+        SIM.safetyCar = true;
+        SIM.safetyCarEndTime = SIM.time + 5 + Math.random() * 7; // 5-12 seconds
+      }
+
       // random events: small chance of safety car or retire
       if(Math.random() < 0.0005 * SIM.speed){
         // small chance of random retirement
         const alive = SIM.cars.filter(c=>!c.retired);
-        if(alive.length>6){ const pick = alive[Math.floor(Math.random()*alive.length)]; pick.retired=true; pick.circ.setAttribute('opacity',0.2); }
+        if(alive.length>6){ 
+          const pick = alive[Math.floor(Math.random()*alive.length)]; 
+          pick.retired=true; 
+          pick.circ.setAttribute('opacity',0.2); 
+        }
       }
 
       // move each car
       SIM.cars.forEach((c,idx)=>{
-        if(c.retired) return;
+        if(c.retired || c.finished) return;
+        
         // performance affects speed
-        const perf = c.model.perf; // base
+        let perf = c.model.perf; // base
+        
+        // Safety car effect - reduce speed delta
+        if (SIM.safetyCar) {
+          perf = 0.95 + (perf - 0.95) * 0.3; // compress performance differences
+        }
+        
         // small randomness + team penalties
         const variability = (Math.sin((SIM.time+idx*3)/10)*0.002 + (Math.random()-0.5)*0.01);
         const speedPx = lapSpeedScalar * perf * (1 + variability);
@@ -387,8 +473,13 @@
         const lapsCompleted = Math.floor(c.pos / pathLen);
         if(lapsCompleted > c.laps){
           c.laps = lapsCompleted;
-          // pitstop chance on lap
-          if(Math.random() < 0.06) { c.inPit=true; c.pos += -60; c.totalTime += 18; } // pitstop penalty
+          // pitstop chance on lap (reduced chance under safety car)
+          if(Math.random() < (SIM.safetyCar ? 0.02 : 0.06)) { 
+            c.inPit = true; 
+            c.pos += -60; 
+            c.totalTime += 18; 
+            c.pitCount++;
+          }
         }
 
         // total time estimate
@@ -421,22 +512,52 @@
       render();
     }
 
-    function formatTime(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${mm}:${ss}` }
+    function formatTime(s){ 
+      const mm = String(Math.floor(s/60)).padStart(2,'0'); 
+      const ss = String(s%60).padStart(2,'0'); 
+      return `${mm}:${ss}`; 
+    }
 
     // start/pause/reset handlers
     document.getElementById('startBtn').addEventListener('click', ()=>{
-      if(!SIM.running){ SIM.running=true; SIM.lastTimestamp = performance.now(); runLoop(); }
+      if(!SIM.running){ 
+        SIM.running=true; 
+        SIM.lastTimestamp = performance.now(); 
+        runLoop(); 
+      }
     });
-    document.getElementById('pauseBtn').addEventListener('click', ()=>{ SIM.running=false; });
-    document.getElementById('resetBtn').addEventListener('click', ()=>{ resetRace(); });
-    document.getElementById('speed').addEventListener('input', e=>{ SIM.speed=parseFloat(e.target.value); document.getElementById('speedLabel').textContent = SIM.speed+'x' });
-    lapsInput.addEventListener('change', e=>{ SIM.totalLaps = parseInt(e.target.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; });
+    
+    document.getElementById('pauseBtn').addEventListener('click', ()=>{ 
+      SIM.running=false; 
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', ()=>{ 
+      resetRace(); 
+    });
+    
+    document.getElementById('speed').addEventListener('input', e=>{ 
+      SIM.speed=parseFloat(e.target.value); 
+      document.getElementById('speedLabel').textContent = SIM.speed+'x'; 
+    });
+    
+    lapsInput.addEventListener('change', e=>{ 
+      SIM.totalLaps = parseInt(e.target.value); 
+      totalLapsSpan.textContent = SIM.totalLaps; 
+      lapsSpan.textContent = SIM.totalLaps; 
+    });
 
     function runLoop(ts){
-      if(!SIM.running) return; const now = ts || performance.now(); const dt = (now - SIM.lastTimestamp)/1000; SIM.lastTimestamp = now; tick(dt); requestAnimationFrame(runLoop);
+      if(!SIM.running) return; 
+      const now = ts || performance.now(); 
+      const dt = (now - SIM.lastTimestamp)/1000; 
+      SIM.lastTimestamp = now; 
+      tick(dt); 
+      requestAnimationFrame(runLoop);
     }
 
-    function stopRace(){ SIM.running=false; // compute final classification
+    function stopRace(){ 
+      SIM.running=false; 
+      // compute final classification
       const finishOrder = SIM.cars.filter(c=>c.finished || !c.retired).sort((a,b)=> a.totalTime - b.totalTime).slice(0,10);
       // show podium
       setTimeout(()=>{
@@ -445,16 +566,38 @@
       },200);
     }
 
-    function resetRace(){ SIM.running=false; SIM.time=0; SIM.currentLap=0; SIM.totalLaps = parseInt(lapsInput.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; SIM.cars.forEach(c=>{ c.pos = (c.id/ SIM.cars.length)*20; c.laps=0; c.totalTime=0; c.retired=false; c.finished=false; c.inPit=false; c.circ.setAttribute('opacity',1); }); render(); }
+    function resetRace(){ 
+      SIM.running=false; 
+      SIM.time=0; 
+      SIM.currentLap=0; 
+      SIM.totalLaps = parseInt(lapsInput.value); 
+      totalLapsSpan.textContent = SIM.totalLaps; 
+      lapsSpan.textContent = SIM.totalLaps; 
+      SIM.safetyCar = false;
+      
+      SIM.cars.forEach(c=>{ 
+        const gridPos = STARTING_GRID.findIndex(d => d.name === c.model.name);
+        const pct = (gridPos >= 0 ? gridPos : c.id) / GRID.length * 0.02;
+        
+        c.pos = pct * pathLen; 
+        c.laps=0; 
+        c.totalTime=0; 
+        c.retired=false; 
+        c.finished=false; 
+        c.inPit=false; 
+        c.pitCount = 0;
+        c.circ.setAttribute('opacity',1); 
+      }); 
+      
+      render(); 
+    }
 
     // init
-    initCars(); resetRace();
+    initCars(); 
+    resetRace();
 
     // initial render
     render();
-
-    // small auto-start for demo disabled by default
-    // document.getElementById('startBtn').click();
   </script>
 </body>
-</html> adicione o pace de cada piloto baseado nos dados de 2025 o grid será aleatório mas segundo a tendência de 2025
+</html>
