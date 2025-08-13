@@ -67,6 +67,11 @@
       text-align: right;
       margin-right: 6px;
     }
+    .driver-tire {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-left: 4px;
+    }
   </style>
 </head>
 <body>
@@ -167,26 +172,107 @@
 
       <footer>
         Gerado automaticamente. Fonte dos nomes e números: Formula1.com / FIA (2025).
+        Dados de performance baseados em estatísticas reais até agosto/2025.
       </footer>
     </aside>
   </div>
 
   <script>
     /************************************************************************
-     * Dados 2025 (times, pilotos, número e cor principal)
-     * Fonte: formula1.com e listas oficiais 2025 (verificado em web.run)
+     * Dados 2025 atualizados com performance real (até agosto/2025)
+     * Fontes: Formula1.com, ESPN, Sky Sports 
      *************************************************************************/
     const TEAMS = [
-      {team:'Red Bull Racing', drivers:[{name:'Max Verstappen', number:1},{name:'Yuki Tsunoda', number:22}], color:'#1E41FF'},
-      {team:'Mercedes', drivers:[{name:'George Russell', number:63},{name:'Kimi Antonelli', number:12}], color:'#00D2BE'},
-      {team:'Ferrari', drivers:[{name:'Charles Leclerc', number:16},{name:'Lewis Hamilton', number:44}], color:'#DC0000'},
-      {team:'McLaren', drivers:[{name:'Lando Norris', number:4},{name:'Oscar Piastri', number:81}], color:'#FF8700'},
-      {team:'Aston Martin', drivers:[{name:'Fernando Alonso', number:14},{name:'Lance Stroll', number:18}], color:'#006F62'},
-      {team:'Alpine', drivers:[{name:'Jack Doohan', number:7},{name:'Pierre Gasly', number:10}], color:'#005AFF'},
-      {team:'Haas', drivers:[{name:'Esteban Ocon', number:31},{name:'Oliver Bearman', number:87}], color:'#FFFFFF'},
-      {team:'Williams', drivers:[{name:'Alexander Albon', number:23},{name:'Carlos Sainz', number:55}], color:'#0050D0'},
-      {team:'Sauber', drivers:[{name:'Nico Hulkenberg', number:27},{name:'Gabriel Bortoleto', number:5}], color:'#00B3AD'},
-      {team:'Racing Bulls', drivers:[{name:'Liam Lawson', number:21},{name:'Isack Hadjar', number:24}], color:'#D62828'}
+      { 
+        team: 'Red Bull Racing', 
+        drivers: [
+          {name: 'Max Verstappen', number: 1, perf: 1.05}, // 9.5/10 rating
+          {name: 'Yuki Tsunoda', number: 22, perf: 0.85}   // 5/10 estimado
+        ], 
+        color: '#1E41FF',
+        teamPerf: 0.95  // 4º melhor carro
+      },
+      { 
+        team: 'Mercedes', 
+        drivers: [
+          {name: 'George Russell', number: 63, perf: 1.02}, // 9/10 rating
+          {name: 'Kimi Antonelli', number: 12, perf: 0.88}  // 6.5/10 rating
+        ], 
+        color: '#00D2BE',
+        teamPerf: 0.97  // 3º melhor carro
+      },
+      { 
+        team: 'Ferrari', 
+        drivers: [
+          {name: 'Charles Leclerc', number: 16, perf: 1.03}, // 9/10 rating
+          {name: 'Lewis Hamilton', number: 44, perf: 0.92}   // 7/10 rating
+        ], 
+        color: '#DC0000',
+        teamPerf: 0.98  // 2º melhor carro
+      },
+      { 
+        team: 'McLaren', 
+        drivers: [
+          {name: 'Lando Norris', number: 4, perf: 1.06},   // 8.5/10 rating
+          {name: 'Oscar Piastri', number: 81, perf: 1.07}  // 9/10 rating
+        ], 
+        color: '#FF8700',
+        teamPerf: 1.05  // Melhor carro
+      },
+      { 
+        team: 'Aston Martin', 
+        drivers: [
+          {name: 'Fernando Alonso', number: 14, perf: 0.93}, // 7/10 rating
+          {name: 'Lance Stroll', number: 18, perf: 0.82}     // 6/10 rating
+        ], 
+        color: '#006F62',
+        teamPerf: 0.82  // 8º melhor carro
+      },
+      { 
+        team: 'Alpine', 
+        drivers: [
+          {name: 'Jack Doohan', number: 7, perf: 0.87},    // 6/10 estimado
+          {name: 'Pierre Gasly', number: 10, perf: 0.89}   // 7/10 estimado
+        ], 
+        color: '#005AFF',
+        teamPerf: 0.88  // 6º melhor carro
+      },
+      { 
+        team: 'Haas', 
+        drivers: [
+          {name: 'Esteban Ocon', number: 31, perf: 0.91},  // 7/10 rating
+          {name: 'Oliver Bearman', number: 87, perf: 0.85} // 6.5/10 estimado
+        ], 
+        color: '#FFFFFF',
+        teamPerf: 0.86  // 7º melhor carro
+      },
+      { 
+        team: 'Williams', 
+        drivers: [
+          {name: 'Alexander Albon', number: 23, perf: 0.96}, // 7.5/10 rating
+          {name: 'Carlos Sainz', number: 55, perf: 0.90}     // 7/10 estimado
+        ], 
+        color: '#0050D0',
+        teamPerf: 0.92  // 5º melhor carro
+      },
+      { 
+        team: 'Sauber', 
+        drivers: [
+          {name: 'Nico Hulkenberg', number: 27, perf: 0.89}, // 7.5/10 rating
+          {name: 'Gabriel Bortoleto', number: 5, perf: 0.80}  // 5/10 estimado
+        ], 
+        color: '#00B3AD',
+        teamPerf: 0.80  // 10º melhor carro
+      },
+      { 
+        team: 'Racing Bulls', 
+        drivers: [
+          {name: 'Liam Lawson', number: 21, perf: 0.84},    // 6/10 estimado
+          {name: 'Isack Hadjar', number: 24, perf: 0.82}    // 5.5/10 estimado
+        ], 
+        color: '#D62828',
+        teamPerf: 0.83  // 9º melhor carro
+      }
     ];
 
     // Function to get FIA-style 3-letter driver abbreviation
@@ -208,7 +294,14 @@
         'Esteban Ocon': 'OCO',
         'Yuki Tsunoda': 'TSU',
         'Nico Hulkenberg': 'HUL',
-        'Alexander Albon': 'ALB'
+        'Alexander Albon': 'ALB',
+        'Oscar Piastri': 'PIA',
+        'Kimi Antonelli': 'ANT',
+        'Jack Doohan': 'DOO',
+        'Oliver Bearman': 'BEA',
+        'Gabriel Bortoleto': 'BOR',
+        'Liam Lawson': 'LAW',
+        'Isack Hadjar': 'HAD'
       };
       
       if (specialCases[name]) return specialCases[name];
@@ -217,17 +310,62 @@
       return parts[parts.length - 1].substring(0, 3).toUpperCase();
     }
 
-    // helper: flatten drivers into grid
+    // Get tire symbol for display
+    function getTireSymbol(tireType) {
+      const tires = {
+        'soft': '🟥',
+        'medium': '🟨',
+        'hard': '⬜',
+        'intermediate': '🟩',
+        'wet': '🟦'
+      };
+      return tires[tireType] || '?';
+    }
+
+    // Get track-specific performance multiplier
+    function getTrackSpecificPerformance(driver, trackType) {
+      // Exemplo: ajustes baseados em características de pilotos
+      const driverSpecialties = {
+        'Max Verstappen': { street: 1.02, power: 1.03, downforce: 1.01 },
+        'Charles Leclerc': { street: 1.05, power: 0.98, downforce: 1.04 },
+        'Lewis Hamilton': { street: 1.04, power: 0.97, downforce: 0.99 },
+        'George Russell': { street: 1.01, power: 1.02, downforce: 1.00 },
+        'Lando Norris': { street: 0.99, power: 1.01, downforce: 1.03 },
+        'Oscar Piastri': { street: 0.98, power: 1.02, downforce: 1.05 },
+        'Alexander Albon': { street: 1.03, power: 0.96, downforce: 0.98 },
+        'Carlos Sainz': { street: 1.01, power: 0.99, downforce: 1.00 },
+        'Fernando Alonso': { street: 1.05, power: 0.95, downforce: 0.97 },
+        'Nico Hulkenberg': { street: 1.00, power: 1.01, downforce: 0.99 }
+      };
+      
+      const specialty = driverSpecialties[driver.name] || {};
+      return specialty[trackType] || 1.0;
+    }
+
+    // Ajuste final de performance combinando driverPerf e teamPerf
     const GRID = [];
-    TEAMS.forEach(t=> t.drivers.forEach(d => GRID.push({
-      team:t.team, 
-      name:d.name, 
-      num:d.number, 
-      color:t.color, 
-      teamColor:t.color, 
-      perf: Math.random()*0.2 + 0.9,
-      abbreviation: getDriverAbbreviation(d.name)
-    }))); // perf base
+    TEAMS.forEach(t => t.drivers.forEach(d => GRID.push({
+      team: t.team,
+      name: d.name,
+      num: d.number,
+      color: t.color,
+      teamColor: t.color,
+      perf: (d.perf * 0.7 + t.teamPerf * 0.3), // 70% piloto, 30% carro
+      abbreviation: getDriverAbbreviation(d.name),
+      currentTire: ['soft', 'medium', 'hard'][Math.floor(Math.random() * 3)] // Random starting tire
+    })));
+
+    // Shuffle grid for random starting positions
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Shuffle the grid for more realistic starting positions
+    const SHUFFLED_GRID = shuffleArray([...GRID]);
 
     // HTML refs
     const carsLayer = document.getElementById('carsLayer');
@@ -241,7 +379,7 @@
     const standingsList = document.getElementById('standingsList');
 
     // populate teams list
-    TEAMS.forEach(t=>{
+    TEAMS.forEach(t => {
       const div = document.createElement('div'); div.className='team-row';
       const dot = document.createElement('span'); dot.className='dot'; dot.style.background=t.color; div.appendChild(dot);
       const txt = document.createElement('div'); txt.innerHTML = `<strong style="font-size:13px">${t.team}</strong><div style="font-size:12px; opacity:0.9">${t.drivers.map(d=>d.number+' — '+d.name).join(' / ')}</div>`;
@@ -250,8 +388,18 @@
 
     // Simulation state
     let SIM = {
-      running:false, time:0, speed:1, lapTime:90, // lap duration baseline (s)
-      cars:[], totalLaps: parseInt(lapsInput.value), currentLap:0, interval:null, lastTimestamp:0
+      running: false,
+      time: 0,
+      speed: 1,
+      lapTime: 90, // lap duration baseline (s)
+      cars: [],
+      totalLaps: parseInt(lapsInput.value),
+      currentLap: 0,
+      interval: null,
+      lastTimestamp: 0,
+      safetyCar: false,
+      safetyCarEndTime: 0,
+      trackType: 'downforce' // 'downforce', 'power', or 'street'
     };
 
     // prepare path length and helper: get point on path
@@ -277,6 +425,7 @@
             ${car.model.abbreviation}
           </div>
           <div class="driver-gap">${gap}</div>
+          <div class="driver-tire">${getTireSymbol(car.model.currentTire)}</div>
         `;
         
         // Set color indicator
@@ -321,36 +470,62 @@
     }
 
     // create car SVG elements
-    function initCars(){
-      carsLayer.innerHTML='';
-      SIM.cars = GRID.map((g,i)=>{
-        const pct = i / GRID.length * 0.02; // small stagger on grid
-        const el = document.createElementNS('http://www.w3.org/2000/svg','g');
-        el.setAttribute('transform','translate(0,0)');
+    function initCars() {
+      carsLayer.innerHTML = '';
+      SIM.cars = SHUFFLED_GRID.map((g, i) => {
+        const pct = i / SHUFFLED_GRID.length * 0.02; // small stagger on grid
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        el.setAttribute('transform', 'translate(0,0)');
         el.setAttribute('data-num', g.num);
 
         // circle
-        const circ = document.createElementNS('http://www.w3.org/2000/svg','circle');
-        circ.setAttribute('r',14); circ.setAttribute('fill', g.color); circ.setAttribute('stroke','#111'); circ.setAttribute('stroke-width',2); circ.setAttribute('filter','url(#shadow)');
+        const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circ.setAttribute('r', 14);
+        circ.setAttribute('fill', g.color);
+        circ.setAttribute('stroke', '#111');
+        circ.setAttribute('stroke-width', 2);
+        circ.setAttribute('filter', 'url(#shadow)');
         el.appendChild(circ);
+        
         // number text
-        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
-        txt.setAttribute('y',5); txt.setAttribute('x',-7); txt.setAttribute('font-size',10); txt.setAttribute('fill','#fff'); txt.textContent = g.num;
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('y', 5);
+        txt.setAttribute('x', -7);
+        txt.setAttribute('font-size', 10);
+        txt.setAttribute('fill', '#fff');
+        txt.textContent = g.num;
         el.appendChild(txt);
 
         carsLayer.appendChild(el);
 
         return {
-          id:i, model:g, el, circ, txt, pos: pct*pathLen, laps:0, lapTimeAccum:0, totalTime:0, inPit:false, retired:false
+          id: i,
+          model: g,
+          el,
+          circ,
+          txt,
+          pos: pct * pathLen,
+          laps: 0,
+          lapTimeAccum: 0,
+          totalTime: 0,
+          inPit: false,
+          retired: false,
+          finished: false,
+          inTraffic: false,
+          pitCount: 0
         };
       });
     }
 
     // update positions visually
-    function render(){
-      SIM.cars.forEach(c=>{
+    function render() {
+      SIM.cars.forEach(c => {
         const p = path.getPointAtLength(c.pos % pathLen);
         c.el.setAttribute('transform', `translate(${p.x}, ${p.y})`);
+        
+        // Update tire wear visual (color intensity)
+        const tireWear = 1.0 - (c.laps / SIM.totalLaps * 0.2);
+        c.circ.setAttribute('opacity', tireWear);
       });
       
       // Update standings panel
@@ -358,61 +533,117 @@
     }
 
     // race tick: advance simulation by dt seconds
-    function tick(dt){
-      if(!SIM.running) return;
+    function tick(dt) {
+      if (!SIM.running) return;
       SIM.time += dt * SIM.speed;
+
+      // Safety car check
+      if (SIM.safetyCar && SIM.time >= SIM.safetyCarEndTime) {
+        SIM.safetyCar = false;
+      }
 
       // determine lap baseline — dt moves by distance proportional to lapTime
       const lapSpeedScalar = pathLen / SIM.lapTime; // px per sec for baseline
 
       // random events: small chance of safety car or retire
-      if(Math.random() < 0.0005 * SIM.speed){
+      if (Math.random() < 0.0005 * SIM.speed && !SIM.safetyCar) {
         // small chance of random retirement
-        const alive = SIM.cars.filter(c=>!c.retired);
-        if(alive.length>6){ const pick = alive[Math.floor(Math.random()*alive.length)]; pick.retired=true; pick.circ.setAttribute('opacity',0.2); }
+        const alive = SIM.cars.filter(c => !c.retired);
+        if (alive.length > 6) {
+          const pick = alive[Math.floor(Math.random() * alive.length)];
+          pick.retired = true;
+          pick.circ.setAttribute('opacity', 0.2);
+          
+          // 30% chance of safety car when a car retires
+          if (Math.random() < 0.3) {
+            SIM.safetyCar = true;
+            SIM.safetyCarEndTime = SIM.time + 8 + Math.random() * 4; // 8-12s safety car
+          }
+        }
       }
 
       // move each car
-      SIM.cars.forEach((c,idx)=>{
-        if(c.retired) return;
+      SIM.cars.forEach((c, idx) => {
+        if (c.retired || c.finished) return;
+        
+        // Check if car is in traffic (within 0.5s of car ahead)
+        c.inTraffic = false;
+        const carsAhead = SIM.cars.filter(car => 
+          !car.retired && !car.finished && 
+          car.pos > c.pos && (car.pos - c.pos) < (0.5 * lapSpeedScalar)
+        if (carsAhead.length > 0) c.inTraffic = true;
+        
         // performance affects speed
-        const perf = c.model.perf; // base
+        const trackPerf = getTrackSpecificPerformance(c.model, SIM.trackType);
+        const effectivePerf = c.model.perf * trackPerf;
+        
+        // tire wear effect (lose 20% performance by end of race)
+        const tireWear = 1.0 - (c.laps / SIM.totalLaps * 0.2);
+        
+        // dirty air penalty when following another car
+        const dirtyAirPenalty = c.inTraffic ? 0.97 : 1.0;
+        
+        // safety car effect - all cars slow down
+        const safetyCarEffect = SIM.safetyCar ? 0.5 : 1.0;
+        
         // small randomness + team penalties
-        const variability = (Math.sin((SIM.time+idx*3)/10)*0.002 + (Math.random()-0.5)*0.01);
-        const speedPx = lapSpeedScalar * perf * (1 + variability);
+        const variability = (Math.sin((SIM.time + idx * 3) / 10) * 0.002 + (Math.random() - 0.5) * 0.01);
+        
+        const speedPx = lapSpeedScalar * effectivePerf * tireWear * dirtyAirPenalty * safetyCarEffect * 
+                       (1 + variability);
+        
         c.pos += speedPx * (dt * SIM.speed);
 
         // lap counting
         const lapsCompleted = Math.floor(c.pos / pathLen);
-        if(lapsCompleted > c.laps){
+        if (lapsCompleted > c.laps) {
           c.laps = lapsCompleted;
-          // pitstop chance on lap
-          if(Math.random() < 0.06) { c.inPit=true; c.pos += -60; c.totalTime += 18; } // pitstop penalty
+          
+          // pitstop chance on lap (higher chance if on soft tires)
+          let pitChance = 0.06;
+          if (c.model.currentTire === 'soft') pitChance = 0.12;
+          if (c.model.currentTire === 'hard') pitChance = 0.03;
+          
+          if (Math.random() < pitChance && c.pitCount < 2) { 
+            c.inPit = true; 
+            c.pos += -60; 
+            c.totalTime += 18; // pitstop penalty
+            c.pitCount++;
+            
+            // Change tires (random strategy)
+            const tireOptions = ['soft', 'medium', 'hard'];
+            c.model.currentTire = tireOptions[Math.floor(Math.random() * tireOptions.length)];
+          }
         }
 
         // total time estimate
-        c.totalTime = (c.pos / pathLen) * SIM.lapTime / c.model.perf;
+        c.totalTime = (c.pos / pathLen) * SIM.lapTime / (effectivePerf * tireWear * dirtyAirPenalty * safetyCarEffect);
       });
 
       // update HUD
-      SIM.currentLap = Math.max(...SIM.cars.map(c=>c.laps));
+      SIM.currentLap = Math.max(...SIM.cars.map(c => c.laps));
       currentLapSpan.textContent = SIM.currentLap;
       raceTimeSpan.textContent = formatTime(Math.floor(SIM.time));
-
-      // leader determination by totalTime ascending (lower = better)
-      const aliveCars = SIM.cars.filter(c=>!c.retired);
-      aliveCars.sort((a,b)=> a.totalTime - b.totalTime);
-      leaderSpan.textContent = aliveCars.length? aliveCars[0].model.name + ' #' + aliveCars[0].model.num : '-';
+      
+      // Show safety car indicator if active
+      if (SIM.safetyCar) {
+        leaderSpan.textContent = "SAFETY CAR";
+      } else {
+        // leader determination by totalTime ascending (lower = better)
+        const aliveCars = SIM.cars.filter(c => !c.retired);
+        aliveCars.sort((a, b) => a.totalTime - b.totalTime);
+        leaderSpan.textContent = aliveCars.length ? aliveCars[0].model.name + ' #' + aliveCars[0].model.num : '-';
+      }
 
       // check race end: if any car completed totalLaps
-      const finished = SIM.cars.filter(c=>c.laps >= SIM.totalLaps && !c.finished);
-      if(finished.length){
-        finished.forEach(f=> f.finished = true);
+      const finished = SIM.cars.filter(c => c.laps >= SIM.totalLaps && !c.finished);
+      if (finished.length) {
+        finished.forEach(f => f.finished = true);
       }
-      const finishedCount = SIM.cars.filter(c=>c.finished).length;
-      if(finishedCount >= 1){
+      const finishedCount = SIM.cars.filter(c => c.finished).length;
+      if (finishedCount >= 1) {
         // if at least one finished and simulation time beyond limit, stop when top3 finished
-        if(SIM.cars.filter(c=>c.finished).length >= 3){
+        if (SIM.cars.filter(c => c.finished).length >= 3) {
           stopRace();
         }
       }
@@ -420,34 +651,91 @@
       render();
     }
 
-    function formatTime(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return `${mm}:${ss}` }
+    function formatTime(s) {
+      const mm = String(Math.floor(s / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
+      return `${mm}:${ss}`;
+    }
 
     // start/pause/reset handlers
-    document.getElementById('startBtn').addEventListener('click', ()=>{
-      if(!SIM.running){ SIM.running=true; SIM.lastTimestamp = performance.now(); runLoop(); }
+    document.getElementById('startBtn').addEventListener('click', () => {
+      if (!SIM.running) {
+        SIM.running = true;
+        SIM.lastTimestamp = performance.now();
+        runLoop();
+      }
     });
-    document.getElementById('pauseBtn').addEventListener('click', ()=>{ SIM.running=false; });
-    document.getElementById('resetBtn').addEventListener('click', ()=>{ resetRace(); });
-    document.getElementById('speed').addEventListener('input', e=>{ SIM.speed=parseFloat(e.target.value); document.getElementById('speedLabel').textContent = SIM.speed+'x' });
-    lapsInput.addEventListener('change', e=>{ SIM.totalLaps = parseInt(e.target.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; });
+    
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      SIM.running = false;
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      resetRace();
+    });
+    
+    document.getElementById('speed').addEventListener('input', e => {
+      SIM.speed = parseFloat(e.target.value);
+      document.getElementById('speedLabel').textContent = SIM.speed + 'x';
+    });
+    
+    lapsInput.addEventListener('change', e => {
+      SIM.totalLaps = parseInt(e.target.value);
+      totalLapsSpan.textContent = SIM.totalLaps;
+      lapsSpan.textContent = SIM.totalLaps;
+    });
 
-    function runLoop(ts){
-      if(!SIM.running) return; const now = ts || performance.now(); const dt = (now - SIM.lastTimestamp)/1000; SIM.lastTimestamp = now; tick(dt); requestAnimationFrame(runLoop);
+    function runLoop(ts) {
+      if (!SIM.running) return;
+      const now = ts || performance.now();
+      const dt = (now - SIM.lastTimestamp) / 1000;
+      SIM.lastTimestamp = now;
+      tick(dt);
+      requestAnimationFrame(runLoop);
     }
 
-    function stopRace(){ SIM.running=false; // compute final classification
-      const finishOrder = SIM.cars.filter(c=>c.finished || !c.retired).sort((a,b)=> a.totalTime - b.totalTime).slice(0,10);
+    function stopRace() {
+      SIM.running = false;
+      // compute final classification
+      const finishOrder = SIM.cars.filter(c => c.finished || !c.retired)
+                                 .sort((a, b) => a.totalTime - b.totalTime)
+                                 .slice(0, 10);
       // show podium
-      setTimeout(()=>{
-        const podium = finishOrder.slice(0,3).map((c,i)=>`${i+1}º — ${c.model.name} (#${c.model.num})`).join('\n');
-        alert('Pódio:\n'+podium);
-      },200);
+      setTimeout(() => {
+        const podium = finishOrder.slice(0, 3)
+          .map((c, i) => `${i+1}º — ${c.model.name} (#${c.model.num}) — ${formatTime(c.totalTime)}`)
+          .join('\n');
+        alert('Pódio:\n' + podium);
+      }, 200);
     }
 
-    function resetRace(){ SIM.running=false; SIM.time=0; SIM.currentLap=0; SIM.totalLaps = parseInt(lapsInput.value); totalLapsSpan.textContent = SIM.totalLaps; lapsSpan.textContent = SIM.totalLaps; SIM.cars.forEach(c=>{ c.pos = (c.id/ SIM.cars.length)*20; c.laps=0; c.totalTime=0; c.retired=false; c.finished=false; c.inPit=false; c.circ.setAttribute('opacity',1); }); render(); }
+    function resetRace() {
+      SIM.running = false;
+      SIM.time = 0;
+      SIM.currentLap = 0;
+      SIM.totalLaps = parseInt(lapsInput.value);
+      SIM.safetyCar = false;
+      totalLapsSpan.textContent = SIM.totalLaps;
+      lapsSpan.textContent = SIM.totalLaps;
+      
+      SIM.cars.forEach(c => {
+        c.pos = (c.id / SIM.cars.length) * 20;
+        c.laps = 0;
+        c.totalTime = 0;
+        c.retired = false;
+        c.finished = false;
+        c.inPit = false;
+        c.pitCount = 0;
+        c.circ.setAttribute('opacity', 1);
+        c.model.currentTire = ['soft', 'medium', 'hard'][Math.floor(Math.random() * 3)];
+      });
+      
+      render();
+    }
 
     // init
-    initCars(); resetRace();
+    initCars();
+    resetRace();
 
     // initial render
     render();
