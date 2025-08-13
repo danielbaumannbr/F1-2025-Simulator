@@ -395,11 +395,11 @@
       cars: [],
       totalLaps: parseInt(lapsInput.value),
       currentLap: 0,
-      interval: null,
       lastTimestamp: 0,
       safetyCar: false,
       safetyCarEndTime: 0,
-      trackType: 'downforce' // 'downforce', 'power', or 'street'
+      trackType: 'downforce', // 'downforce', 'power', or 'street'
+      animationId: null
     };
 
     // prepare path length and helper: get point on path
@@ -535,13 +535,7 @@
     // race tick: advance simulation by dt seconds
     function tick(dt) {
       if (!SIM.running) return;
-      SIM.time += dt * SIM.speed;
-
-      // Safety car check
-      if (SIM.safetyCar && SIM.time >= SIM.safetyCarEndTime) {
-        SIM.safetyCar = false;
-      }
-
+      
       // determine lap baseline — dt moves by distance proportional to lapTime
       const lapSpeedScalar = pathLen / SIM.lapTime; // px per sec for baseline
 
@@ -560,6 +554,11 @@
             SIM.safetyCarEndTime = SIM.time + 8 + Math.random() * 4; // 8-12s safety car
           }
         }
+      }
+
+      // Check safety car end
+      if (SIM.safetyCar && SIM.time >= SIM.safetyCarEndTime) {
+        SIM.safetyCar = false;
       }
 
       // move each car
@@ -620,6 +619,9 @@
         c.totalTime = (c.pos / pathLen) * SIM.lapTime / (effectivePerf * tireWear * dirtyAirPenalty * safetyCarEffect);
       });
 
+      // Update simulation time
+      SIM.time += dt * SIM.speed;
+
       // update HUD
       SIM.currentLap = Math.max(...SIM.cars.map(c => c.laps));
       currentLapSpan.textContent = SIM.currentLap;
@@ -657,20 +659,45 @@
       return `${mm}:${ss}`;
     }
 
+    // Animation loop
+    function runLoop(timestamp) {
+      if (!SIM.running) return;
+      
+      if (!SIM.lastTimestamp) {
+        SIM.lastTimestamp = timestamp;
+      }
+      
+      const dt = (timestamp - SIM.lastTimestamp) / 1000; // Convert to seconds
+      SIM.lastTimestamp = timestamp;
+      
+      tick(dt);
+      
+      SIM.animationId = requestAnimationFrame(runLoop);
+    }
+
     // start/pause/reset handlers
     document.getElementById('startBtn').addEventListener('click', () => {
       if (!SIM.running) {
         SIM.running = true;
-        SIM.lastTimestamp = performance.now();
-        runLoop();
+        SIM.lastTimestamp = 0; // Reset timestamp
+        SIM.animationId = requestAnimationFrame(runLoop);
       }
     });
     
     document.getElementById('pauseBtn').addEventListener('click', () => {
       SIM.running = false;
+      if (SIM.animationId) {
+        cancelAnimationFrame(SIM.animationId);
+        SIM.animationId = null;
+      }
     });
     
     document.getElementById('resetBtn').addEventListener('click', () => {
+      SIM.running = false;
+      if (SIM.animationId) {
+        cancelAnimationFrame(SIM.animationId);
+        SIM.animationId = null;
+      }
       resetRace();
     });
     
@@ -685,17 +712,13 @@
       lapsSpan.textContent = SIM.totalLaps;
     });
 
-    function runLoop(ts) {
-      if (!SIM.running) return;
-      const now = ts || performance.now();
-      const dt = (now - SIM.lastTimestamp) / 1000;
-      SIM.lastTimestamp = now;
-      tick(dt);
-      requestAnimationFrame(runLoop);
-    }
-
     function stopRace() {
       SIM.running = false;
+      if (SIM.animationId) {
+        cancelAnimationFrame(SIM.animationId);
+        SIM.animationId = null;
+      }
+      
       // compute final classification
       const finishOrder = SIM.cars.filter(c => c.finished || !c.retired)
                                  .sort((a, b) => a.totalTime - b.totalTime)
@@ -739,9 +762,6 @@
 
     // initial render
     render();
-
-    // small auto-start for demo disabled by default
-    // document.getElementById('startBtn').click();
   </script>
 </body>
 </html>
